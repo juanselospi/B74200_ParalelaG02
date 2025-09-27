@@ -1,0 +1,29 @@
+========== RESULTADOS DE enviarConClases Y recibirConClases ======================
+
+juanselospi@fedora:~/Desktop/VSCode/Paralela y Concurrente/Semana-03$ make enviarConClases
+g++ -g -c enviarConClases.cc
+g++ -g -c Buzon.cc
+g++ -g enviarConClases.o Buzon.o -o bin/enviarConClases
+juanselospi@fedora:~/Desktop/VSCode/Paralela y Concurrente/Semana-03$ make recibirConClases
+g++ -g -c recibirConClases.cc
+g++ -g recibirConClases.o Buzon.o -o bin/recibirConClases
+juanselospi@fedora:~/Desktop/VSCode/Paralela y Concurrente/Semana-03$ ./bin/enviarConClases 
+Label: a, status 0 
+Label: b, status 0 
+Label: c, status 0 
+Label: d, status 0 
+Label: e, status 0 
+Label: li, status 0 
+juanselospi@fedora:~/Desktop/VSCode/Paralela y Concurrente/Semana-03$ ./bin/recibirConClases 
+Label: a, times 0 
+Label: b, times 1 
+Label: c, times 2 
+Label: d, times 3 
+Label: e, times 4 
+Label: li, times 5 
+^C
+juanselospi@fedora:~/Desktop/VSCode/Paralela y Concurrente/Semana-03$ 
+
+
+/
+PARA CORRER LO DEMAS USAR LOS make DEL Makefile, RECORDAR QUE LOS .object ESTAN EN --> ./bin/

@@ -1,0 +1,124 @@
+[Ejercicio propuesto: 2025/Ago/29; entrega 2025/Set/05]
+
+1) Memoria Compartida
+
+   Funcionalidad lógica
+
+        Proceso R            Proceso T
+       -----------          -----------
+      |   Texto   |        |   Texto   |
+      |-----------|        |-----------|
+      |   Datos   |        |   Datos   |
+      |-----------|        |-----------|
+      |   Pila    |        |   Pila    |
+       -----------          -----------
+                \            /
+                 \          /
+                  \--------/
+                  | shMem  |   Con "ipcs -m" puede revisar los recursos de este tipo asignados
+                  |        |
+                  |  S.O.  |
+                   --------
+
+      Recuerden que por definición los procesos no comparten memoria, puede ser que por buen uso de la memoria el
+      S.O. decida tener solo un segmento de "Texto" si los procesos son idénticos (fork) y los comparta entre varios
+      de ellos de manera solo lectura.  Por lo tanto, si un proceso accede a una porción de memoria no autorizada
+      se genera una excepción (Segmentation Fault) y el proceso termina.  Sin embargo, definitivamente los
+      segmentos de "Datos" y "Pila" NO son compartidos entre procesos.
+
+      A veces es necesario que procesos compartan datos y es por ello que Linux facilita la creación de segmentos
+      de memoria que pueden ser compartidos entre ellos.  Para ello, uno de los procesos debe crear el área de
+      memoria compartida (shmget) indicando la cantidad de bytes y los permisos respectivos.  Luego debe inicializar
+      un puntero para tener acceso al área (shmat) y poder escribir datos o acceder a ellos.
+
+Procedimiento
+   - Llamados al sistema a utilizar, recuerden utilizar el "man" para comprender que hacen
+      shmget, shmat, shmdt, shmctl, no hace falta crear una clase C++ para estos llamados
+
+   - Debe correr el programa "pruebaShM.c"
+
+   - Crear una versión de "PiPorSeries.c" que utilice un segmento de memoria compartida para lograr
+     hacer que el programa realice los cálculos correctamente
+
+   - Crear una versión de "sumaUno.c" que utilice un segmento de memoria compartida para lograr
+     hacer que el programa realice los cálculos correctamente
+
+
+2) Buzones: construir la implantación de la clase
+
+   Funcionalidad lógica:
+
+       -----------          -----------
+      |           |        |           |
+      | Proceso P |        | Proceso Q |
+      |           |        |           |
+       -----------          -----------
+                \            /
+                 \          /
+                  \--------/
+                  | Buzon  |   Con "ipcs" puede revisar los recursos asignados
+                  |        |
+                  |  S.O.  |
+                   --------
+
+
+      El buzón es una estructura de colas que maneja el sistema operativo, Linux, para el envio, almacenamiento
+      y recepción de mensajes de cualquier tipo.  El sistema es capaz de recuperar los mensajes en el orden que
+      fueron enviados, como en una cola normal, pero también se puede recuperar los mensajes de acuerdo con el
+      tipo de mensaje definido por el usuario.
+
+      Los procesos pueden enviar y recibir mensajes, no existe un papel definido para cada uno.  La lógica detrás
+      de las colas es que "un proceso no puede recibir un mensaje que no ha sido enviado", por lo tanto, si un
+      proceso solicita un mensaje que no ha sido enviado, debe esperar hasta que el mensaje sea enviado por otro
+      proceso.  De esta manera, cuando queremos que un evento E1 ocurra después de otro E2, el proceso encargado
+      de E2 deberá esperar un mensaje antes de comenzar con ese evento, otro proceso, encargado de realizar E1,
+      deberá completarlo y luego enviar el mensaje.
+
+      Este esquema de paso de mensajes es denominado indirecto, pues se está utilizando un buzón para la transferencia
+      de mensajes.  En el esquema directo los procesos intercambian mensajes sin intermediario.
+
+      Unix o Linux utilizan una estructura especializada para definir el cuerpo de los mensajes que los programas
+      deben intercambiar, esta estructura debe ser definida por el usuario, pero siempre debe llamarse "msgbuf" y
+      tener el primer campo tipo long:
+
+         struct msgbuf {
+            long mtype;		// message type, must be > 0
+            int  velocidad;	// Otros campos definidos por el usuario
+            float costo;
+            long distancia;
+            char mensaje[ 100 ];
+            // etc.
+         };
+
+      No se puede crear punteros en los campos de esta estructura (ejemplo, char * mensaje) ya que el valor del puntero se
+      va a pasar al otro proceso el cual va a tratar de recuperar los caracteres y violentar el espacio de memoria
+      asignado (Segmentation Fault).
+
+      Tengan presente que el espacio dedicado a mantener esta estructura de colas es limitado por lo que es posible que
+      un proceso que esté enviando mensajes, a pesar de indicar en su bandera que no quiere esperar (IPC_NOWAIT) deba
+      esperar hasta que haya espacio de nuevo.  Recuerden controlar el valor de retorno de los llamados al sistema
+      que utilizan.
+
+Procedimiento
+
+   a) Construya una clase de C++ para encapsular los llamados al sistema a utilizar para paso de mensajes, similar
+      al proceso realizado por los semáforos:
+
+      Constructor: msgget
+      Destructor: msgctl
+      Send: msgsnd
+      Receive: msgrcv
+
+   b) Corra los programas "enviarSinClases" y "recibirSinClases" para que analice su funcionamiento
+      - Debe correr primero el programa que envía para que el programa que recibe funcione bien
+
+   c) Lograr hacer que los programas enviarConClases y recibirConClases corran adecuadamente
+      Para realizar las pruebas, pueden utilizar las versiones sin clases, tanto para enviar como
+      para recibir los mensajes.  Pueden enviar con la versión sin clases y recibir con la versión
+      con clases o viceversa.
+
+   d) Construir una versión del programa "PiPorSeriesBuzon" que utilice paso de mensajes para lograr que
+     el programa realice el cálculo correctamente
+
+   e) Construir una versión del programa "sumaUnoBuzon" que utilice paso de mensajes para lograr que
+     el programa realice el cálculo correctamente
