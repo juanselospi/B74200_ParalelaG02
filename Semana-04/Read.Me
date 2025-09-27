@@ -1,0 +1,29 @@
+[Ejercicio propuesto: 2025/Set/05; entrega 2025/Set/12]
+
+1) Completar el ejemplo del agua
+   a) Utilizar semáforos y memoria compartida para completar su solución
+   b) Utilizar paso de mensajes (únicamente) para completar su solución
+
+2) Completar el ejemplo de los filósofos
+   a) Utilizar semáforos y memoria compartida para completar su solución
+   b) Utilizar paso de mensajes (únicamente) para completar su solución
+
+3) Facilitamos las nuevas clases "Mutex" y "Lock" como parte de las herramientas
+   que podemos utilizar para solucionar problemas de sincronización.  Están
+   implantadas utilizando semáforos.
+
+4) Adaptar la clase Semaforo para crear arreglos de semáforos y poder realizar
+   operaciones sobre el conjunto construido.
+   a) Revisar el nuevo encabezado "Semaforo.h"
+   b) Cambiar el constructor para que reciba la cantidad de semáforos a crear
+      en el arreglo, supondremos que todos los elementos del arreglo tendrán el
+      mismo valor inicial
+   c) Los métodos Wait y Signal ahora recibirán el parámetro para indicar sobre
+      cual semáforo se quiere realizar la operación, está preinicializado en cero,
+      de manera que los primeros programas que creamos no requieran de grandes
+      modificaciones
+   d) Se facilita un esqueleto de "Semaforo.cc"
+
+5) Hacer que el programa "filoFork-gv.cc" funcione correctamente empleando la nueva
+   clase de semáforos construida antes.  Puede utilizar el programa "filoFork-ngv.c"
+   de referencia.  Para estos es necesario que el paquete "ncurses-devel" este instalado.
