@@ -1,0 +1,63 @@
+  [Ejercicio propuesto: 2025/Ago/22; entrega 2025/Ago/29
+
+  Objetivos
+      Creación de procesos en Unix (Linux) [fork]
+      Completar la implantación de la clase para semáforos
+      Correr el programa "sumaUno.c" e indicar por qué no funciona
+
+
+  Funcionamiento
+     Para lograr la sincronización de procesos por medio de semáforos, queremos
+  que uno de los procesos espera hasta que otro proceso le indique que puede
+  continuar.  Es por ello que esta clase, tiene facilidad para realizar ambas
+  tareas, una para bloquear los procesos "Wait" y otra para avisar que pueden
+  continuar "Signal".
+
+    -----------                     -----------
+   |           |                   |           |
+   | Proceso P |                   | Proceso Q |
+   |           |                   |           |
+    -----------\                   / -----------
+                \                 /
+                 \ --------------/
+                  | Sem.         |
+                  |              |
+                  | Sist. Oper.  |
+                  |   (LINUX)    |
+                   --------------
+
+   El semáforo tiene que ser creado por alguno de los procesos, para eso vamos a
+   tener el constructor de la clase.
+
+   En un programa serial la secuencia de llamados a los métodos se hace explícitamente, por ejemplo, si
+   un procedimiento "Primero" necesita preparar algo para un procedimiento "Segundo", simplemente hacemos
+   el llamado a "Primero" primero y luego a "Segundo", eso garantiza que el programa haga lo correcto.
+   Cuando tenemos dos procesos corriendo y necesitamos garantizar esta secuencia, los semáforos nos ayudan
+   a cumplir con este requisito, construyendo un semáforo cuyo valor inicial debe ser cero, haciendo que un
+   proceso llame a "Primero" y luego active el semáforo (Signal), mientras que el otro proceso debe esperar
+   a que el semáforo se active y luego hacer "Segundo".
+
+Procedimiento
+
+   a) Creación de procesos en Unix (Linux) [fork]
+      Correr el ejemplo provisto "sumaUno.c"
+         Crear un documento de texto y anotar los resultados obtenidos
+         Intente explicar lo que hace el programa
+      Correr el ejemplo provisto "PiPorSeries.c"
+         Anote los resultados obtenidos
+         Intente explicar lo que hace el programa
+
+   b) Semáforos: construir la implantación de la clase
+   
+      Completar la clase Semaforo para poder sincronizar procesos de una misma 
+      computadora.  Se facilita la interfaz Semaforo.h.
+
+      - Llamados al sistema a utilizar
+         Constructor: semget, semctl
+
+         Destructor: semctl
+         Signal: semop
+         Wait: semop
+
+      - Lograr que el ejemplo: pruebaSem funcione correctamente
+
