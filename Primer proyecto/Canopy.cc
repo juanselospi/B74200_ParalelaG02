@@ -1,6 +1,6 @@
 #include "Canopy.h"
 
-Canopy::Canopy() {
+Canopy::Canopy( int id ) {
     int monkey;
 
     this->lock = new Lock();
@@ -10,6 +10,8 @@ Canopy::Canopy() {
 
     this->ropeDir = LEFT; // can make it random but harder for consistency to check bugs
     this->previousDir = LEFT;
+
+    this->ropeIndex = id + 1;
 
     for(monkey = 0; monkey < TROOP; ++monkey) {
         this->state[ monkey ] = QUEUEING;
@@ -29,10 +31,9 @@ Canopy::~Canopy() {
 
 void Canopy::queue( int monkey, Direction dir ) {
     
-    printf( "Monkey %d queued on side %s\n", monkey, ( dir == LEFT ) ? "LEFT" : "RIGHT" );
-    fflush( stdout );
+    // printf( "Monkey %d queued on side %s\n", monkey, ( dir == LEFT ) ? "LEFT" : "RIGHT" );
+    // fflush( stdout );
 
-    
     this->lock->Acquire();
     
     // monkey waiting in queue
@@ -57,7 +58,7 @@ void Canopy::cross( int monkey, Direction dir ) {
     this->state[ monkey ] = CROSSING;
 
     // print the crossing status and direction of the crossing
-    printf( "Monkey %d is crossing the rope %s\n", monkey, (dir == LEFT) ? "LEFT -> RIGHT" : "RIGHT -> LEFT" );
+    printf( "Monkey %d is crossing the rope [%d] %s\n", monkey, ropeIndex, (dir == LEFT) ? "LEFT -> RIGHT" : "RIGHT -> LEFT" );
     fflush( stdout );
 
     // simulation for crossing time
@@ -87,7 +88,7 @@ void Canopy::leave( int monkey, Direction dir ) {
 
         if( ropeDir != previousDir ) {
             // print change of direction
-            printf("The rope changes direction to %s\n", ( ropeDir == LEFT ) ? "LEFT -> RIGHT" : "RIGHT -> LEFT");
+            printf("The rope [%d] changes direction to %s\n", ropeIndex, ( ropeDir == LEFT ) ? "LEFT -> RIGHT" : "RIGHT -> LEFT");
             fflush( stdout );
 
             previousDir = ropeDir;
@@ -108,7 +109,7 @@ bool Canopy::test( int monkey, Direction dir ) {
         ropeDir = dir;
 
         if( ropeDir != previousDir ) {
-            printf( "The rope changes direction to %s\n", ( ropeDir == LEFT ) ? "LEFT -> RIGHT" : "RIGHT -> LEFT" );
+            printf( "The rope [%d] changes direction to %s\n", ropeIndex, ( ropeDir == LEFT ) ? "LEFT -> RIGHT" : "RIGHT -> LEFT" );
             fflush( stdout );
 
             previousDir = ropeDir;

@@ -4,10 +4,10 @@
 
 struct MonkeyRope
 {
-    Canopy rope;
+    Canopy rope[ 2 ];
 };
 
-int Monkey( int who, Canopy * rope) {
+int Monkey( int who, MonkeyRope * monkeyRope) {
     int stroll;
 
     srand(getpid());
@@ -19,6 +19,13 @@ int Monkey( int who, Canopy * rope) {
         // procreastinating time
         int distracted = rand() & 0xffff;
         usleep( distracted );
+
+        int ropeIndex = rand() % 2;
+        Canopy * rope = &monkeyRope->rope[ ropeIndex ];
+
+        int ropeNum = ropeIndex + 1;
+        printf( "Monkey %d picked rope %d\n", who, ropeNum );
+        fflush( stdout );
 
         // get in queue to jump the rope
         rope->queue( who, dir );
@@ -32,7 +39,7 @@ int Monkey( int who, Canopy * rope) {
         // monkeys changes sides on exit
         dir = ( dir == LEFT ) ? RIGHT : LEFT;
     }
-
+    shmdt( monkeyRope ); // unmap shared memo segments to prevent ipcs trash
     exit( 0 );
 }
 
@@ -43,7 +50,7 @@ int main( int argc, char ** argv ) {
     MonkeyRope * monkeyRope;
     Canopy * canopy = new Canopy();
 
-    monkeys = 5;
+    monkeys = 10;
     if ( argc > 1 ) {
         monkeys = atol( argv[ 1 ] );
     }
@@ -56,15 +63,16 @@ int main( int argc, char ** argv ) {
     }
 
     monkeyRope = (struct MonkeyRope *) shmat( memId, NULL, 0 );
-    memcpy( monkeyRope, canopy, sizeof( Canopy ) );	// Copy object to shared segment
+
+    // init both ropes on shared memory
+    new (&monkeyRope->rope[ 0 ]) Canopy( 0 );
+    new (&monkeyRope->rope[ 1 ]) Canopy( 1 );
 
     // create monkeys
     for ( monkey = 0; monkey < monkeys; ++monkey ) {
         pid = fork();
         if ( ! pid ) {
-            Monkey( monkey, & monkeyRope->rope );
-
-            printf("valor de la cuerda: %d", monkeyRope); // para verificar que todos los monos acceden al mismo segmento de cuerda
+            Monkey( monkey, monkeyRope );
         }
     }
 
@@ -74,6 +82,15 @@ int main( int argc, char ** argv ) {
         pid_t pid = wait( &status );
     }
 
-   shmdt( monkeyRope );
-   shmctl( memId, IPC_RMID, NULL );
+    // delete stray semaphores
+    for( int semId : Semaforo::semIds ) {
+        if( -1 == semctl( semId, 0, IPC_RMID ) ) {
+            perror( "Semaphore cleanup failed" );
+        }
+    }
+
+    shmdt( monkeyRope );
+    shmctl( memId, IPC_RMID, NULL );
+
+    exit( 0 );
 }

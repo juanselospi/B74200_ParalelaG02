@@ -1,5 +1,7 @@
 #include "Semaforo.h"
 
+std::vector<int> Semaforo::semIds;
+
 Semaforo::Semaforo( int cantidad, int valorInicial ) {
    int status;
    union semun {
@@ -11,6 +13,8 @@ Semaforo::Semaforo( int cantidad, int valorInicial ) {
 
    this->id = semget( IPC_PRIVATE, cantidad, 0600 | IPC_CREAT | IPC_EXCL );
    this->nsems = cantidad;
+
+   Semaforo::semIds.push_back( this->id );
 
    value.val = valorInicial;	// Each semaphore will be initialized to this value
    for ( int i = 0; i < this->nsems; i++ ) {

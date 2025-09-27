@@ -28,10 +28,12 @@ class Canopy {
         int monkeysOnRope;
         int monkeysCrossed;
 
+        int ropeIndex;
+
         bool test( int monkey, Direction dir ); // verify if monkey can cross or not
 
     public:
-        Canopy();
+        Canopy( int id = 0 );
         ~Canopy();
         void queue( int monkey, Direction dir );
         void cross( int monkey, Direction dir );
