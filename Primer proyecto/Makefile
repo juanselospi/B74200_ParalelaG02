@@ -1,22 +1,24 @@
-all: Monkeys.out
+BIN = bin
 
-Lock.o: Lock.h Lock.cc
-	g++ -g -c Lock.cc
+all: $(BIN)/Monkeys.out
 
-Semaforo.o: Semaforo.h Semaforo.cc
-	g++ -g -c Semaforo.cc
+$(BIN)/Lock.o: Lock.h Lock.cc
+	g++ -g -c Lock.cc -o $@
 
-Condition.o: Condition.h Condition.cc
-	g++ -g -c Condition.cc
+$(BIN)/Semaforo.o: Semaforo.h Semaforo.cc
+	g++ -g -c Semaforo.cc -o $@
 
-Canopy.o: Canopy.h Canopy.cc
-	g++ -g -c Canopy.cc
+$(BIN)/Condition.o: Condition.h Condition.cc
+	g++ -g -c Condition.cc -o $@
 
-Monkeys.o: Monkeys.cc Canopy.h
-	g++ -g -c Monkeys.cc
+$(BIN)/Canopy.o: Canopy.h Canopy.cc
+	g++ -g -c Canopy.cc -o $@
 
-Monkeys.out: Monkeys.o Canopy.o Lock.o Condition.o Semaforo.o
-	g++ -g Monkeys.o Canopy.o Lock.o Condition.o Semaforo.o -o Monkeys.out
+$(BIN)/Monkeys.o: Monkeys.cc Canopy.h
+	g++ -g -c Monkeys.cc -o $@
+
+$(BIN)/Monkeys.out: $(BIN)/Monkeys.o $(BIN)/Canopy.o $(BIN)/Lock.o $(BIN)/Condition.o $(BIN)/Semaforo.o
+	g++ -g $^ -o $@
 
 clean:
-	@rm -f *.o *.out
+	@rm -f *.o $(BIN)/*
