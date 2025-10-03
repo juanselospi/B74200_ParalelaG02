@@ -62,7 +62,7 @@ int main( int argc, char ** argv ) {
         exit( 1 );
     }
 
-    monkeyRope = (struct MonkeyRope *) shmat( memId, NULL, 0 );
+    monkeyRope = ( struct MonkeyRope * ) shmat( memId, NULL, 0 );
 
     // init both ropes on shared memory
     new (&monkeyRope->rope[ 0 ]) Canopy( 0 );
