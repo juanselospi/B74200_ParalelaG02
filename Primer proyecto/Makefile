@@ -20,5 +20,17 @@ $(BIN)/Monkeys.o: Monkeys.cc Canopy.h
 $(BIN)/Monkeys.out: $(BIN)/Monkeys.o $(BIN)/Canopy.o $(BIN)/Lock.o $(BIN)/Condition.o $(BIN)/Semaforo.o
 	g++ -g $^ -o $@
 
+$(BIN)/Mutex.o: Mutex.h Mutex.cc
+	g++ -g -c Mutex.cc -o $@
+
+$(BIN)/Buzon.o: Buzon.h Buzon.cc Potato.h
+	g++ -g -c Buzon.cc -o $@
+
+$(BIN)/Pringles.o: Pringles.cc Potato.h
+	g++ -g -c Pringles.cc -o $@
+
+$(BIN)/Pringles.out: $(BIN)/Pringles.o $(BIN)/Buzon.o $(BIN)/Semaforo.o $(BIN)/Mutex.o $(BIN)/Lock.o
+	g++ -g $^ -o $@
+
 clean:
 	@rm -f *.o $(BIN)/*
