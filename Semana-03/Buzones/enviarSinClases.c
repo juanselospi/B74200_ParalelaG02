@@ -1,5 +1,5 @@
 /**
-  *  C++ program to receive messages via operating system message passing queues
+  *  C++ program to send messages via operating system message passing queues
   *
   *  No C++ class implementation
   *
@@ -19,6 +19,15 @@
 #define KEY 0xA12345
 #define LABEL_SIZE 64
 
+const char * html_labels[] = {
+   "a",
+   "b",
+   "c",
+   "d",
+   "e",
+   "li",
+   ""
+};
 
 int main( int argc, char ** argv ) {
 
@@ -32,21 +41,28 @@ struct msgbuf {
    struct msgbuf A;
    int id, i, size, st;
 
-   id = msgget( KEY, 0600 );
+   id = msgget( KEY, 0600 | IPC_CREAT );
    if ( -1 == id ) {
-      perror("t0-recibe: ");
+      perror("t0-envia: ");
       exit(1);
    }
 
-   size = sizeof( A );
+   A.mtype = 2025;
    i = 0;
 
-   st = msgrcv( id,  &A, size, 2025, IPC_NOWAIT );
-   while ( st > 0 ) {
-      printf("Label: %s, times %d \n", A.label, A.times );
-      st = msgrcv( id,  &A, size, 2025, IPC_NOWAIT ); // Cambiar size = sizeof(A) por size = sizeof(A) - sizeof(long)
+   while ( strlen(html_labels[ i ] ) ) {
+      A.times = i;
+      strcpy( A.label, html_labels[ i ] );
+      size = sizeof( A );
+      st = msgsnd( id,  &A, size, IPC_NOWAIT );
+      printf("Label: %s, status %d \n", html_labels[ i ], st );
+      i++;
    }
 
+
+/*
    msgctl( id, IPC_RMID, NULL );
+*/
 
 }
+

@@ -13,35 +13,37 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <sys/shm.h> // para utilizar segmentos de memoria compartida
 
-#include "Buzon.h"
+#include "Semaforo.h"
 
 long total = 0;
-
-Buzon m;
 
 /*
  *  Do some work, by now add one to a variable
  */
-void AddOne() {
+long AddOne( long * suma, Semaforo &s ) {
    int i;
-   long suma = 0;
 
    for ( i = 0; i < 1000; i++ ) {
       usleep( 1 );
-      suma++;			// Suma uno
-   }
 
-   m.Enviar("SUMA", suma, 1);
+      s.Wait();
+      
+      (* suma)++;			// Suma uno
+
+      s.Signal();
+   }
 
    exit( 0 );
 
 }
 
+
 /*
   Serial test
 */
-int SerialTest( int procesos, long * total ) {
+void SerialTest( int procesos, long * total ) {
    int i, proceso;
 
    for ( proceso = 0; proceso < procesos; proceso++ ) {
@@ -51,35 +53,28 @@ int SerialTest( int procesos, long * total ) {
       }
 
    }
-   return 0;
+
 }
+
 
 /*
   Fork test
 */
-int ForkTest( int procesos, long * total ) {
+void ForkTest( int procesos, long * total, Semaforo &s ) {
    int proceso, pid;
 
    for ( proceso = 0; proceso < procesos; proceso++ ) {
       pid = fork();
-      if ( pid == 0 ) {
-         AddOne();
+      if ( ! pid ) {
+         AddOne( total, s );
       }
    }
 
    for ( proceso = 0; proceso < procesos; proceso++ ) {
       int status;
-      wait( &status );
+      pid_t pid = wait( &status );
    }
 
-
-   for ( proceso = 0; proceso < procesos; proceso++) {
-      struct Mensaje msg;
-      m.Recibir(&msg, sizeof(msg) - sizeof(long), 1);
-      (* total) += msg.times;
-   }
-
-   return 0;
 }
 
 /*
@@ -88,6 +83,7 @@ int ForkTest( int procesos, long * total ) {
 void startTimer( struct timeval * timerStart) {
    gettimeofday( timerStart, NULL );
 }
+
 
 /*
  *  time elapsed in ms
@@ -100,13 +96,20 @@ double getTimer( struct timeval timerStart ) {
    return timerElapsed.tv_sec*1000.0+timerElapsed.tv_usec/1000.0;
 }
 
+
 int main( int argc, char ** argv ) {
    long procesos;
    int proceso;
    struct timeval timerStart;
    double used;
 
+   Semaforo *s = new Semaforo( 1, 1 ); // instancia del semaforo que voy a usar
 
+   // segmento de memoria compartida
+   int sharedMemo = shmget( 123456, sizeof( long ), IPC_CREAT | 0666 );
+   long *total = ( long * ) shmat( sharedMemo, NULL, 0 );
+
+   *total = 0; // la acumulacion de mi sumaUno
 
    procesos = 100;
    if ( argc > 1 ) {
@@ -114,16 +117,22 @@ int main( int argc, char ** argv ) {
    }
 
    startTimer( & timerStart );
-   total = 0;
-   SerialTest( procesos, & total );
+   *total = 0;
+   SerialTest( procesos, total );
    used = getTimer( timerStart );
-   printf( "Serial version:      Valor acumulado por %ld procesos es \033[91m %ld \033[0m en %f ms\n", procesos, total, used );
+   printf( "Serial version:      Valor acumulado por %ld procesos es \033[91m %ld \033[0m en %f ms\n", procesos, *total, used );
 
    startTimer( & timerStart );
-   total = 0;
-   ForkTest( procesos, & total );
+   *total = 0;
+   ForkTest( procesos, total, *s );
    used = getTimer( timerStart );
-   printf( "Fork   version:      Valor acumulado por %ld procesos es \033[91m %ld \033[0m en %f ms\n", procesos, total, used );
+   printf( "Fork   version:      Valor acumulado por %ld procesos es \033[91m %ld \033[0m en %f ms\n", procesos, *total, used );
 
-   return 0;
+   // borrar la memoria compartida
+   shmdt( total );
+   shmctl( sharedMemo, IPC_RMID, NULL );
+
+   // borrar semaforo
+   delete s;
 }
+

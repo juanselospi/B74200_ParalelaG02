@@ -15,15 +15,12 @@
 #include <wait.h>
 #include <unistd.h>
 
-//#include "Semaphore.h"
-#include "Semaforo.h"
+#include "Semaforo.h" // como estan en la misma carpeta no hace falta Memoria/...
 
 int main() {
 
    int i;
-   //Semaphore s;
-   Semaforo s;
-   
+   Semaforo * s = new Semaforo( 1, 0 ); // Si quiero que el hijo espere hasta que el padre termine, debo inicializar el semaforo en 0
    int id;
    char * area, *var;
    char newvar[100];
@@ -37,10 +34,10 @@ int main() {
       printf( "Escriba un numero y  para continuar ...\n" );
       scanf( "%i", &i );
       printf( "Padre-> valor de la variable compartida es %s \n", area );
-      s.Signal();		// Avisa al hijo que la memoria tiene la informacion
+      s->Signal();		// Avisa al hijo que la memoria tiene la informacion
    }
    else {
-      s.Wait();			// Espera hasta que el padre lo indique
+      s->Wait();			// Espera hasta que el padre lo indique
       strcpy( newvar, area );	// Copia y despliega la nueva variable
       printf( "Hijo->  valor de la variable compartida es %s \n", newvar );
       _exit( 0 );		// Termina al hijo sin llamar a los destructores
@@ -49,6 +46,7 @@ int main() {
    printf( "Fin del programa ... \n" );
    shmdt( area );		// Se "despega" del area compartida
    shmctl( id, IPC_RMID, NULL );	// Destruye el semgmento de memoria compartida
+   delete s; // llama al destructor y borra el semaforo
 }
 
 /*
@@ -61,3 +59,4 @@ Hijo->  valor de la variable compartida es: Area de memoria compartida
 Fin del programa ... 
 
 */
+

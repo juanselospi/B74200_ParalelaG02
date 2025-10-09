@@ -21,23 +21,16 @@
 
 int main( int argc, char ** argv ) {
 
-
-// struct Mensaje {
-//        long mtype;     // message type, must be > 0 
-//        int times;	// Times that label appears
-//        char label[ LABEL_SIZE ];  // Label to send to mailbox
-// };
-
    Mensaje A;
    ssize_t st;
-
-//    int id, size, st;
    Buzon m;
 
-   st = m.Recibir( (void *) &A, sizeof(A) - sizeof(long), 2025 );  // Receives a message with 2019 type
+   st = m.Recibir( (void *) &A, sizeof( A ) - sizeof( long ), 2025 );  // Receives a message with 2019 type
    while ( st > 0 ) {
       printf("Label: %s, times %d \n", A.label, A.times );
-      st = m.Recibir( (void *) &A, sizeof(A) - sizeof(long), 2025 );
+      st = m.Recibir( (void *) &A, sizeof( A ) - sizeof( long ), 2025 );
    }
 
+   m.Eliminar();
 }
+

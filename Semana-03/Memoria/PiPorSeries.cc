@@ -14,36 +14,27 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/shm.h>
 
-#include "Buzon.h"
-
-Buzon m;
+// # ==============================
+// # Este es un ejemplo de manipular fork() sin necesidad de semaforo
+// # ==============================
 
 /*
    Realiza la acumulacion de terminos desde una posicion inicial hasta un termino final
 */
-double calcularSumaParcialPi( long inicial, long fin ) {
+double calcularSumaParcialPi( double Pi[], int proceso, long inicial, long terminos ) {
    double casiPi = 0;
-   // double alterna = 4;
+   double alterna = 4;
    long divisor = 0;
    long termino;
 
-   double alterna = (inicial % 2 == 0) ? 4.0 : -4.0;
-   
-   for ( termino = inicial; termino < fin; termino++ ) {
+   for ( termino = inicial; termino < terminos; termino++ ) {
       divisor = termino + termino + 1;		// 2 x termino + 1
       casiPi += alterna/divisor;		// 4 / (2xi + 1)
       alterna *= -1;				// Pasa de 4 a -4 y viceversa, para realizar la aproximacion de los terminos
    }
-
-   // ========== recordar el empaquetado y desempaquetado si mi formato no es exactamente igual ==========
-   Mensaje msg;
-   msg.mtype = 1;
-   snprintf(msg.label, LABEL_SIZE, "Proceso %ld", inicial);
-   memcpy(&msg.times, &casiPi, sizeof(double));
-   m.Enviar(&msg, sizeof(msg) - sizeof(long), 1);
-
-   // Pi[ proceso ] = casiPi;			// Guarda el resultado en el vector y finaliza
+   Pi[ proceso ] = casiPi;			// Guarda el resultado en el vector y finaliza
 
    exit( 0 );
 }
@@ -54,6 +45,15 @@ int main( int argc, char ** argv ) {
    int proceso;
    int pid;
    // double casiPi[ 10 ] = { 0 };
+   double *casiPi;
+
+   // segmento de memoria compartida
+   int sharedMemo = shmget( 12345, 10 * sizeof( double ), IPC_CREAT | 0666 ); // importante reservar espacio para x10 procesos Pi[10]
+   casiPi = ( double * ) shmat( sharedMemo, NULL, 0 );
+
+   for( int i = 0; i < 10; i++ ) {
+      casiPi[i] = 0;
+   }
 
    terminos = 1000000;
    if ( argc > 1 ) {
@@ -64,8 +64,8 @@ int main( int argc, char ** argv ) {
       inicio = proceso * terminos/10;
       fin = (proceso + 1) * terminos/10;
       pid = fork();
-      if ( pid == 0 ) {
-         calcularSumaParcialPi( inicio, fin );
+      if ( ! pid ) {
+         calcularSumaParcialPi( casiPi, proceso, inicio, fin ); // no es necesario usar semaforo aqui, cada proceso escribe en su indice
       } else {
          printf("Creating process %d: starting value %ld, finish at %ld\n", pid, inicio, fin );
       }
@@ -73,24 +73,16 @@ int main( int argc, char ** argv ) {
 
    for ( proceso = 0; proceso < 10; proceso++ ) {
       int status;
-      wait( &status );
+      pid_t pid = wait( &status );
    }
 
-   // for ( proceso = 1; proceso < 10; proceso++ ) {
-   //    casiPi[ 0 ] += casiPi[ proceso ];
-   // }
-
-   // ========== desempaquetado ==========
-   double pi = 0;
-   for (int i = 0; i < 10; i++) {
-      Mensaje msg;
-      m.Recibir(&msg, sizeof(msg) - sizeof(long), 1);
-      double parcial;
-      memcpy(&parcial, &msg.times, sizeof(double));
-      pi += parcial;
+   for ( proceso = 1; proceso < 10; proceso++ ) {
+      casiPi[ 0 ] += casiPi[ proceso ];
    }
 
-   printf( "Valor calculado de Pi es \033[91m %g \033[0m con %ld terminos\n", pi, terminos );
+   printf( "Valor calculado de Pi es \033[91m %g \033[0m con %ld terminos\n", casiPi[ 0 ], terminos );
 
-   return 0;
+   shmdt( casiPi );
+   shmctl( sharedMemo, IPC_RMID, NULL );
 }
+
