@@ -1,0 +1,69 @@
+🧠 RESUMEN – Programación Paralela y Concurrente
+
+----------------------------------------------------
+1. Conceptos base
+----------------------------------------------------
+Fork: crea un proceso hijo idéntico al padre. Ambos continúan desde la llamada.
+IPC: mecanismos para que procesos independientes se comuniquen (Semáforos, Buzones, Memoria Compartida).
+
+----------------------------------------------------
+2. Mecanismos de sincronización
+----------------------------------------------------
+Semáforo: contador entero que controla acceso a recursos. wait()/signal().
+Mutex: exclusión mutua, solo 1 hilo a la vez. lock()/unlock().
+Lock: abstracción de mutex. RAII en C++.
+Condition Variable: permite suspender hilos hasta cumplir condición. Usar con mutex.
+Barrier: todos los hilos deben llegar antes de continuar.
+Monitor: estructura con métodos sincronizados y condiciones. Garantiza exclusión y espera-condición.
+
+----------------------------------------------------
+3. PThreads (POSIX Threads)
+----------------------------------------------------
+pthread_create(&h, NULL, func, arg);
+pthread_join(h, NULL);
+pthread_mutex_init(), lock(), unlock();
+pthread_cond_wait(), pthread_cond_signal();
+
+Todos los hilos comparten memoria global. Proteger con mutexes.
+
+----------------------------------------------------
+4. IPC clásico (Linux)
+----------------------------------------------------
+Semáforos SysV: <sys/sem.h> → semget, semop, semctl
+Buzones: <sys/msg.h> → msgget, msgsnd, msgrcv, msgctl
+Memoria compartida: <sys/shm.h> → shmget, shmat, shmdt, shmctl
+
+Limpiar recursos:
+ipcs
+ipcrm -q <id>   (colas)
+ipcrm -m <id>   (memoria)
+ipcrm -s <id>   (semáforos)
+
+----------------------------------------------------
+5. Comparación de rendimiento
+----------------------------------------------------
+SpeedUp (S) = Ts / Tp
+Eficiencia (E) = S / P
+Tp = max(tiempo por trabajador)
+
+Ejemplo:
+Ts = 100, Tp = 30, P = 4
+S = 3.33, E = 0.83 (83%)
+
+----------------------------------------------------
+6. Mapeo de tareas
+----------------------------------------------------
+Estático por bloque: tareas contiguas, ideal si homogéneas.
+Estático cíclico: reparte 1 tarea por hilo, ideal si varían un poco.
+Dinámico: asigna conforme terminan, ideal si varían mucho. Overhead mayor.
+
+----------------------------------------------------
+7. Resumen visual
+----------------------------------------------------
+Fork      → procesos separados
+Threads   → hilos en mismo proceso
+Mutex     → 1 a la vez
+Semáforo  → control general (N recursos)
+CondVar   → esperar condición
+Monitor   → mutex + condvar integrados
+Barrier   → esperar todos
