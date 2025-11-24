@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <sys/types.h>
 #include <unistd.h>
+#include <ctime>
 
 #include "adn.h"
 
@@ -24,7 +25,11 @@ ADN::ADN( int length ) {
    int posicion;
    char base = 'A';
 
-   srand( getpid() );
+   // srand( getpid() );
+
+   srand( time(NULL) + clock() );
+
+   rand();
  
    this->sequence = std::string( "" );
    for ( posicion = 0; posicion < length; posicion++ ) {

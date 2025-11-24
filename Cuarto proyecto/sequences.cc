@@ -33,6 +33,8 @@
 #include "adn.h"
 #include "lcs.h"
 
+#define INPUT 10000
+
 using namespace std;
 
 /**
@@ -57,6 +59,31 @@ int main( int argumentos, char ** valores ) {
 	double start, finish, wusedSerial, wusedParallel;
 	string S1, S2;
 
+	int input1 = INPUT;
+	int input2 = INPUT;
+
+	// parametros ingresados por el usuario
+    if( argumentos > 1 ) {
+
+        input1 = atoi( valores[ 1 ] );
+
+		// si me dan un valor invalido irme al default
+		if(input1 < 1) {
+
+			input1 = INPUT;
+		}
+    }
+
+    if( argumentos > 2 ) {
+
+        input2 = atoi(valores[2]);
+
+		if( input2 < 1 ) {
+
+			input2 = INPUT;
+		}
+    }
+
 	// inicializacion de variables por mejorar
 	MPI_Init( &argumentos, &valores );
 
@@ -75,11 +102,16 @@ int main( int argumentos, char ** valores ) {
 		//   printf( "Random sequence: %s\n", adn3->toString().c_str() );
 		//   adn1->printSeqs();
 
-		ADN * adn1 = new ADN( 10000 );
-		ADN * adn2 = new ADN( 10000 );
+		ADN * adn1 = new ADN( input1 );
+		ADN * adn2 = new ADN( input2 );
 
 		S1 = adn1->toString();
 		S2 = adn2->toString();
+
+		// para revisar que ambas cadenas aleatorias sean diferentes
+		// cout << "\nS1: " << S1 << endl;
+		// cout << "\nS2: " << S2 << endl;
+
 
 		// CORRIDA SERIAL
 		LCS solucionador;
@@ -89,9 +121,11 @@ int main( int argumentos, char ** valores ) {
 		finish = MPI_Wtime();
 		wusedSerial = finish - start;
 
-		cout << "LCS serial de tamaño [" << serial.size() << "] encontrada:" << endl;
-		cout << serial << endl;
-		cout << "\nTiempo version serial: " << wusedSerial << " segundos" << endl;
+		cout << "LCS serial para cadenas de tamaños: " << input1 << " y " << input2 << " encontrada:" << endl;
+		//cout << serial << endl;
+		cout << "Longitud de la LCS serial: " << serial.size() << endl;
+
+		cout << "Tiempo version serial: " << wusedSerial << " segundos" << endl;
 
 		// delete adn3;
 		delete adn2;
@@ -128,9 +162,12 @@ int main( int argumentos, char ** valores ) {
 
 	if( rank == 0 ) {
 
-		cout << "\nLCS paralela con " << size << " procesos y de tamaño [" << paralela.size() << "] encontrada:" << endl;
-		cout << paralela << endl;
-		cout << "\nTiempo version paralela: " << wusedParallel << " segundos" << endl;
+		cout << "\nLCS paralela por MPI para cadenas de tamaños: " << input1 << " y " << input2 << " encontrada:" << endl;
+		//cout << paralela << endl;
+		cout << "Longitud de la LCS paralela: " << paralela.size() << endl;
+
+
+		cout << "Tiempo version paralela: " << wusedParallel << " segundos" << endl;
 
 		double speedUp = wusedSerial / wusedParallel;
 

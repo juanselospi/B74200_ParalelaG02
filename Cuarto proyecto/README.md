@@ -55,13 +55,14 @@ El proceso 0 imprime los tiempos finales.
 
 Esto genera el ejecutable principal: sequences.out
 
-- Parametros de ejecucion: mpirun -np [hilos] ./sequences.out
+- Parametros de ejecucion: mpirun -np [hilos] ./sequences.out [cadena1] [cadena2]
  
 - Donde:
        hilos       -> cantidad de hilos MPI a usar (int)
+       cadena1     -> tamaño cadena 1
+       cadena2     -> tamaño cadena 2
 
-- Ejemplo de ejecucion usado para pruebas: mpirun -np 8 ./sequences.out
-
+- Ejemplo de ejecucion usado para pruebas: mpirun -np 8 ./sequences.out 10000 10000 
 
 ---
 
@@ -71,15 +72,15 @@ Pruebas realizadas con secuencias de **10000 caracteres**, usando **8 procesos M
 
 ---
 
-LCS serial de tamaño [10000] encontrada:
+LCS serial para cadenas de tamaños: 10000 y 10000 encontrada:
+Longitud de la LCS serial: 6519
+Tiempo version serial: 3.46411 segundos
 
-Tiempo version serial: 5.5457 segundos
+LCS paralela por MPI para cadenas de tamaños: 10000 y 10000 encontrada:
+Longitud de la LCS paralela: 6519
+Tiempo version paralela: 3.03735 segundos
 
-LCS paralela con 8 procesos y de tamaño [10000] encontrada:
-
-Tiempo version paralela: 4.9904 segundos
-
-SpeedUp: 1.11128x
+SpeedUp: 1.1405x
 
 ---
 
