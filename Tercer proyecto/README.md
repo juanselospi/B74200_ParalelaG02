@@ -1,4 +1,18 @@
 # Proyecto 3 – Programación Paralela y Concurrente
+
+
+**DISCLAMER**
+En el codigo existe 1 version paralela comentada, esta version es la forma matematicamente correcta de resolver k-means
+pero no es eficiente en tiempo por las cantidades de overhead en OpenMP *igual se dejó a peticion del profe( para potenciales puntos extra )*
+
+El codigo tiene instrucciones claras de como correr la version 2 que es solo `comentar y descomentar las partes señaladas` bajo estas lineas:
+
+-    // EN CASO DE PROBARSE DESCOMENTAR TODO ENTRE LOS // === 
+
+-    // EN CASO DE QUERER PROBAR LA VERSION DE ARRIBA COMENTAR TODO ENTRE LOS // ......
+
+---
+
 ## Agrupamiento de N puntos en R clases usando OpenMP (Extensión realizada para soportar 3D)
 
 Este proyecto implementa el algoritmo de **agrupamiento por centros** (similar a K-means) en dos versiones:
@@ -120,3 +134,24 @@ Valor de la disimilaridad en la solución encontrada 3.64965e+06, con un total d
 Tiempo total de agrupamiento (version paralela): 28.148548 s
 
 SpeedUp: 1.0189x
+
+---
+
+## Documentación ADICIONAL sobre la version paralela 2 **comentada**
+
+*Corriendo una prueba sobre la version paralela 2 comentada se pbtuvo un ligero speedUp con los siguientes parametros*
+
+Usando 4 hilos para generar 100000 puntos, para 17 clases -> salida: paralela.eps
+
+Tiempo de asignación inicial de puntos (modo 0): 0.000721 s
+
+Valor de la disimilaridad en la solución encontrada 730357, con un total de 271693 cambios
+Tiempo total de agrupamiento (version serial): 3.093277 s
+
+Valor de la disimilaridad en la solución encontrada 730357, con un total de 271693 cambios
+Tiempo total de agrupamiento (version paralela): 3.051403 s
+
+SpeedUp: 1.0137x
+
+*Conclusion*
+Es un resultado posible mas no es la norma por el overhead, esto se añade como demostracion de su funcionamiento.

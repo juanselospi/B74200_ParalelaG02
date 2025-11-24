@@ -122,67 +122,67 @@ void actualizarPuntos( VectorPuntos * centros, VectorPuntos * puntos, long * cla
 
 
 // // APPROACH BASADO EN REPARTIR PUNTOS DONDE LOS CENTROS CUALQUIERA LOSP UEDE ACCEDER
-// void actualizarCentrosOMP( VectorPuntos *centros, VectorPuntos *puntos, long *clases, long *contClases ) {
-//    long C = centros->demeTamano();
-//    long P = puntos->demeTamano();
+void actualizarCentrosOMP_puntos( VectorPuntos *centros, VectorPuntos *puntos, long *clases, long *contClases ) {
+   long C = centros->demeTamano();
+   long P = puntos->demeTamano();
 
-//    // solo 1 hilo reinicia todos los centros a cero
-//    // para evitar que varios hilos hagan trabajo duplicado
-//    #pragma omp single
-//    {
-//       for( long centro = 0; centro < C; centro++ ) {
-//          (*centros)[ centro ]->ponga( 0, 0, 0 );
-//          contClases[ centro ] = 0;
-//       }
-//    }
+   // solo 1 hilo reinicia todos los centros a cero
+   // para evitar que varios hilos hagan trabajo duplicado
+   #pragma omp single
+   {
+      for( long centro = 0; centro < C; centro++ ) {
+         (*centros)[ centro ]->ponga( 0, 0, 0 );
+         contClases[ centro ] = 0;
+      }
+   }
 
-//    // cada hilo crea un vector de puntos local que acumula las sumas de puntos por cada clase
-//    // sumLocal va a guardar la suma de coordenadas de todos los puntos que este hilo esta viendo en la clase C de turno
-//    vector< Punto > sumLocal( C, Punto( 0, 0, 0 ) );
+   // cada hilo crea un vector de puntos local que acumula las sumas de puntos por cada clase
+   // sumLocal va a guardar la suma de coordenadas de todos los puntos que este hilo esta viendo en la clase C de turno
+   vector< Punto > sumLocal( C, Punto( 0, 0, 0 ) );
 
-//    // un arreglo local de contadores para saber cuantos puntos son de cada clase en este hilo
-//    vector< long > countLocal( C, 0 );
+   // un arreglo local de contadores para saber cuantos puntos son de cada clase en este hilo
+   vector< long > countLocal( C, 0 );
 
-//    // esto paraleliza el recorrido de todos los puntos y aqui cada hilo en teoria recibe una parte de los puntos
-//    // este nowait evita que los hilos esperen al final de mi for()
-//    #pragma omp for schedule( static ) nowait
-//    for( long pto = 0; pto < P; pto++ ) {
-//       long clase = clases[ pto ];
-//       sumLocal[ clase ].sume( (*puntos)[ pto ] );
-//       countLocal[ clase ]++;
-//    }
+   // esto paraleliza el recorrido de todos los puntos y aqui cada hilo en teoria recibe una parte de los puntos
+   // este nowait evita que los hilos esperen al final de mi for()
+   #pragma omp for schedule( static ) nowait
+   for( long pto = 0; pto < P; pto++ ) {
+      long clase = clases[ pto ];
+      sumLocal[ clase ].sume( (*puntos)[ pto ] );
+      countLocal[ clase ]++;
+   }
 
-//    // zona critica para reduccion = cada hilo combina sus resultados locales con los resultados globales acutles
-//    #pragma omp critical
-//    {
-//       for( long centro = 0; centro < C; centro++ ) {
-//          (*centros)[ centro ]->sume( &sumLocal[ centro ] );
-//          contClases[ centro ] += countLocal[ centro ];
-//       }
-//    }
+   // zona critica para reduccion = cada hilo combina sus resultados locales con los resultados globales acutles
+   #pragma omp critical
+   {
+      for( long centro = 0; centro < C; centro++ ) {
+         (*centros)[ centro ]->sume( &sumLocal[ centro ] );
+         contClases[ centro ] += countLocal[ centro ];
+      }
+   }
 
-//    #pragma omp single
-//    for( long centro = 0; centro < C; centro++ ) {
-//       if( contClases[ centro ] > 0 ) {
-//          (*centros)[ centro ]->divida( contClases[ centro ] );
-//       }
-//    }
-// }
+   #pragma omp single
+   for( long centro = 0; centro < C; centro++ ) {
+      if( contClases[ centro ] > 0 ) {
+         (*centros)[ centro ]->divida( contClases[ centro ] );
+      }
+   }
+}
 
 
-// void actualizarPuntosOMP( VectorPuntos *centros, VectorPuntos *puntos, long *clases, long &cambios ) {
+void actualizarPuntosOMP_puntos( VectorPuntos *centros, VectorPuntos *puntos, long *clases, long &cambios ) {
 
-//    #pragma omp for schedule( static ) reduction( +:cambios ) nowait
-//    for( long pto = 0; pto < puntos->demeTamano(); pto++ ) {
-//       long old = clases[ pto ];
-//       long neu = centros->masCercano( (*puntos)[ pto ] );
+   #pragma omp for schedule( static ) reduction( +:cambios ) nowait
+   for( long pto = 0; pto < puntos->demeTamano(); pto++ ) {
+      long old = clases[ pto ];
+      long neu = centros->masCercano( (*puntos)[ pto ] );
 
-//       if( old != neu ) {
-//          clases[ pto ] = neu;
-//          cambios++;
-//       }
-//    }
-// }
+      if( old != neu ) {
+         clases[ pto ] = neu;
+         cambios++;
+      }
+   }
+}
 
 
 // ESTE ES MI APPROACH NUEVO DONDE LA REPARTICION ES DE LOS CENTROS ENTRE LOS HILOS Y TODOS TIENEN ACCESO A LOS PUNTOS
@@ -293,7 +293,8 @@ int main( int cantidad, char ** parametros ) {
    Punto * punto;
    long casillas = CLASES;
    long muestras = PUNTOS;
-   const char *nombreArchivo = "ci0117.eps";
+   const char *paralelaArchivo = "paralela.eps";
+   const char *serialArchivo = "ci0117.eps";
    double start, finish, wusedAssign, wusedSerial, wusedParallel; // para tomar los tiempos
    int hilos = HILOS;
    int modo = MODO;
@@ -328,15 +329,15 @@ int main( int cantidad, char ** parametros ) {
    }
 
    if( cantidad > 4 ) { // si el usuario le quiere dar un nombre al archivo ( nombres diferentes permiten comparar corridas con diversos parametros de entrada visualmente )
-      nombreArchivo = parametros[ 4 ];
+      paralelaArchivo = parametros[ 4 ];
 
       // comprobar extension .eps correcta
-      const char *extencion = strrchr( nombreArchivo, '.' );
+      const char *extencion = strrchr( paralelaArchivo, '.' );
 
       // si el nombre dle archivo no tiene extencion o no es .eps
       if( extencion == NULL || strcmp( extencion, ".eps" ) != 0 ) {
          printf( "Archivo sin extension .eps, usando ci0117.eps por defecto\n" );
-         nombreArchivo = "ci0117.eps"; // uso el nombre que venia con el .zip del proyecto
+         paralelaArchivo = "ci0117.eps"; // uso el nombre que venia con el .zip del proyecto
       }
    }
 
@@ -351,7 +352,7 @@ int main( int cantidad, char ** parametros ) {
       // printf( "Modo %d\n", modo ); // redundante imprimirlo aqui, lo uso para debuguear
    }
 
-   printf( "Usando %d hilos para generar %ld puntos, para %ld clases -> salida: %s\n", hilos, muestras, casillas, nombreArchivo );
+   printf( "Usando %d hilos para generar %ld puntos, para %ld clases -> salida: %s\n", hilos, muestras, casillas, paralelaArchivo );
 
 // Procesar los parámetros del programa
 
@@ -410,8 +411,14 @@ int main( int cantidad, char ** parametros ) {
    printf( "\nValor de la disimilaridad en la solución encontrada %g, con un total de %ld cambios\n", centros->disimilaridad( puntos, clases ), totalCambios );
    printf( "Tiempo total de agrupamiento (version serial): %.6f s\n", wusedSerial );
 
+   puntos->genEpsFormat( centros, clases, (char *)serialArchivo );
 
-   // // PARALELA
+   
+
+   // EN CASO DE PROBARSE DESCOMENTAR TODO ENTRE LOS // === 
+
+   // // PARALELA (VERSION CON ENFOQUE A DIVIDIR PUNTOS ENTRE HILOS Y ACCEDER A CENTROS DE FORMA CONCURRENTE)
+   // =========================================================================
 
    // totalCambios = 0;
 
@@ -422,12 +429,12 @@ int main( int cantidad, char ** parametros ) {
    //    do {
    //       // Coloca todos los centros en el origen
    //       // Promedia los elementos del conjunto para determinar el nuevo centro
-   //       actualizarCentrosOMP( centrosOMP, puntosOMP, clasesOMP, contClasesOMP );
+   //       actualizarCentrosOMP_puntos( centrosOMP, puntosOMP, clasesOMP, contClasesOMP );
          
    //       #pragma omp single
    //       cambios = 0;
          
-   //       actualizarPuntosOMP( centrosOMP, puntosOMP, clasesOMP, cambios );
+   //       actualizarPuntosOMP_puntos( centrosOMP, puntosOMP, clasesOMP, cambios );
 
    //       #pragma omp barrier
 
@@ -440,7 +447,16 @@ int main( int cantidad, char ** parametros ) {
    // finish = omp_get_wtime();
    // wusedParallel = finish - start;
 
-   // PARALELA
+
+   // ==========================================================================
+
+
+
+   // EN CASO DE QUERER PROBAR LA VERSION DE ARRIBA COMENTAR TODO ENTRE LOS // .......
+
+   // PARALELA (VERSION ACTUAL = DIVIDO LOS CENTROS ENTRE LOS HILOS HILOS Y ACCESO CONCURRENTE A LOS PUNTOS)
+   // ..........................................................................
+
    totalCambios = 0;
 
    start = omp_get_wtime();
@@ -466,6 +482,8 @@ int main( int cantidad, char ** parametros ) {
    finish = omp_get_wtime();
    wusedParallel = finish - start;
 
+   // .............................................................................
+
    printf( "\nValor de la disimilaridad en la solución encontrada %g, con un total de %ld cambios\n", centrosOMP->disimilaridad( puntosOMP, clasesOMP ), totalCambios );
    printf( "Tiempo total de agrupamiento (version paralela): %.6f s\n", wusedParallel );
 
@@ -473,7 +491,7 @@ int main( int cantidad, char ** parametros ) {
    printf( "\nSpeedUp: %.4fx\n", speedUp );
 
 // Con los valores encontrados genera el archivo para visualizar los resultados
-   puntosOMP->genEpsFormat( centrosOMP, clasesOMP, (char *)nombreArchivo );
+   puntosOMP->genEpsFormat( centrosOMP, clasesOMP, (char *)paralelaArchivo );
 
    delete[] clases;
    delete[] contClases;
