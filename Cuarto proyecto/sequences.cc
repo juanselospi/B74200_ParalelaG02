@@ -122,7 +122,7 @@ int main( int argumentos, char ** valores ) {
 		wusedSerial = finish - start;
 
 		cout << "LCS serial para cadenas de tamaños: " << input1 << " y " << input2 << " encontrada:" << endl;
-		//cout << serial << endl;
+		cout << serial << endl;
 		cout << "Longitud de la LCS serial: " << serial.size() << endl;
 
 		cout << "Tiempo version serial: " << wusedSerial << " segundos" << endl;
@@ -163,7 +163,7 @@ int main( int argumentos, char ** valores ) {
 	if( rank == 0 ) {
 
 		cout << "\nLCS paralela por MPI para cadenas de tamaños: " << input1 << " y " << input2 << " encontrada:" << endl;
-		//cout << paralela << endl;
+		cout << paralela << endl;
 		cout << "Longitud de la LCS paralela: " << paralela.size() << endl;
 
 

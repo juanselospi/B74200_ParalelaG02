@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <mpi.h>
+#include <omp.h>
 #include <iostream>
 
 #include "adn.h"

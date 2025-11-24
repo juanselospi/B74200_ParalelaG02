@@ -85,3 +85,15 @@ SpeedUp: 1.1405x
 ---
 
 *Para estos resultados comente la parte que imprime la cadena entera en la terminal, pero esta activado que se vea por defecto*
+
+## Tabla de resultados de rendimiento (MPI)
+
+Pruebas realizadas en mi laptop con **8 procesos MPI** y cadenas aleatorias del mismo tamaño:
+
+| Tamaño S1/S2 | Procesos MPI | Tiempo serial (s) | Tiempo paralelo (s)  | SpeedUp |
+|--------------|--------------|-------------------|----------------------|---------|
+|  6000 / 6000 |      4       |    1.20994        |       1.09613        | 1.10383 |
+|  8000 / 8000 |      4       |    2.17529        |       1.93043        | 1.12684 |
+| 10000 /10000 |      8       |    3.46411        |       3.03735        | 1.1405  |
+| 12000 /12000 |      8       |    5.23006        |       4.67867        | 1.11785 |
+| 15000 /15000 |      8       |    8.27486        |       8.14151        | 1.01638 |
