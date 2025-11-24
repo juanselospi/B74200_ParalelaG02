@@ -23,15 +23,13 @@ string LCS::serialLCS( string& S1, string& S2 ) {
     int m = S2.size();
 
     for (int i = 1; i<=n; i++ ){
-        for (int j = 1; i <= m; i++)
+        for (int j = 1; j <= m; j++)
         {
-          if(S1[i-1] == S2[j-1]){
-            matriz[i][j]=matriz[i-1][j-1] +1;
-
-          }else{
-            matriz[i][j] = max(matriz[i-1][j], matriz[i][j-1]);
-
-          }
+            if (S1[i-1] == S2[j-1]) {
+                matriz[i][j] = matriz[i-1][j-1] + 1;
+            } else {
+                matriz[i][j] = max(matriz[i-1][j], matriz[i][j-1]);
+            }
         }
 
 

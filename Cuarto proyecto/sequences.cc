@@ -9,6 +9,22 @@
  *
 **/
 
+/**
+ *  Compilar con:
+ *      make
+ * 
+ *  Esto genera el ejecutable principal: sequences.out
+ *
+ *  Parametros de ejecucion:
+ * 		mpirun -np [hilos] ./sequences.out
+ *
+ *  Donde:
+ *      hilos       -> cantidad de hilos MPI a usar (int)
+ * 
+ *  Ejemplo de ejecucion usado para pruebas:
+ * 		mpirun -np 8 ./sequences.out
+ */
+
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -59,8 +75,8 @@ int main( int argumentos, char ** valores ) {
 		//   printf( "Random sequence: %s\n", adn3->toString().c_str() );
 		//   adn1->printSeqs();
 
-		ADN * adn1 = new ADN( 3000 );
-		ADN * adn2 = new ADN( 3000 );
+		ADN * adn1 = new ADN( 10000 );
+		ADN * adn2 = new ADN( 10000 );
 
 		S1 = adn1->toString();
 		S2 = adn2->toString();
