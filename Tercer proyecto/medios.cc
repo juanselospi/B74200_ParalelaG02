@@ -336,8 +336,8 @@ int main( int cantidad, char ** parametros ) {
 
       // si el nombre dle archivo no tiene extencion o no es .eps
       if( extencion == NULL || strcmp( extencion, ".eps" ) != 0 ) {
-         printf( "Archivo sin extension .eps, usando ci0117.eps por defecto\n" );
-         paralelaArchivo = "ci0117.eps"; // uso el nombre que venia con el .zip del proyecto
+         printf( "Archivo sin extension .eps, usando paralela.eps por defecto\n" );
+         paralelaArchivo = "paralela.eps"; // uso el nombre que venia con el .zip del proyecto
       }
    }
 

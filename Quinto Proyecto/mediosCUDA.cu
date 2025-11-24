@@ -174,7 +174,8 @@ int main( int cantidad, char ** parametros ) {
    long cambios;
    long casillas = CLASES;
    long muestras = PUNTOS;
-   const char *nombreArchivo = "ci0117.eps";
+   const char *cudaArchivo = "cuda.eps";
+   const char *serialArchivo = "ci0117.eps";
    double start, finish, wusedAssign, wusedSerial, wusedCUDA; // para tomar los tiempos
    int cuda = CUDA;
    int modo = MODO;
@@ -209,15 +210,15 @@ int main( int cantidad, char ** parametros ) {
    }
 
    if( cantidad > 4 ) { // si el usuario le quiere dar un nombre al archivo ( nombres diferentes permiten comparar corridas con diversos parametros de entrada visualmente )
-      nombreArchivo = parametros[ 4 ];
+      cudaArchivo = parametros[ 4 ];
 
       // comprobar extension .eps correcta
-      const char *extencion = strrchr( nombreArchivo, '.' );
+      const char *extencion = strrchr( cudaArchivo, '.' );
 
       // si el nombre dle archivo no tiene extencion o no es .eps
       if( extencion == NULL || strcmp( extencion, ".eps" ) != 0 ) {
-         printf( "Archivo sin extension .eps, usando ci0117.eps por defecto\n" );
-         nombreArchivo = "ci0117.eps"; // uso el nombre que venia con el .zip del proyecto
+         printf( "Archivo sin extension .eps, usando cuda.eps por defecto\n" );
+         cudaArchivo = "cuda.eps"; // uso el nombre que venia con el .zip del proyecto
       }
    }
 
@@ -232,7 +233,7 @@ int main( int cantidad, char ** parametros ) {
       // printf( "Modo %d\n", modo ); // redundante imprimirlo aqui, lo uso para debuguear
    }
 
-   printf( "Usando %d CUDA para generar %ld puntos, para %ld clases -> salida: %s\n", cuda, muestras, casillas, nombreArchivo );
+   printf( "Usando %d CUDA para generar %ld puntos, para %ld clases -> salida: %s\n", cuda, muestras, casillas, cudaArchivo );
 
 // Procesar los parámetros del programa
 
@@ -291,6 +292,7 @@ int main( int cantidad, char ** parametros ) {
    printf( "\nValor de la disimilaridad en la solución encontrada %g, con un total de %ld cambios\n", centros->disimilaridad( puntos, clases ), totalCambios );
    printf( "Tiempo total de agrupamiento (version serial): %.6f s\n", wusedSerial );
 
+   puntos->genEpsFormat( centros, clases, serialArchivo );
 
    // CUDA
    totalCambios = 0;
@@ -409,7 +411,7 @@ int main( int cantidad, char ** parametros ) {
    printf( "\nSpeedUp: %.4fx\n", speedUp );
 
 // Con los valores encontrados genera el archivo para visualizar los resultados
-   puntosCUDA->genEpsFormat( centrosCUDA, clasesCUDA, nombreArchivo );
+   puntosCUDA->genEpsFormat( centrosCUDA, clasesCUDA, cudaArchivo );
 
    delete[] clases;
    delete[] contClases;
