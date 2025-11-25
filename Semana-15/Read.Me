@@ -1,0 +1,176 @@
+Read.Me 
+
+[Ejercicio propuesto: 2025/Nov/09; no hay entrega para esta semana]
+
+Objetivos
+   - Aprendizaje básico de programación con CUDA
+
+Tareas a realizar
+
+1) Construcción de un programa muy sencilla para realizar la suma de dos arreglos de una dimensión con un millón de elementos (add.cc)
+
+2) Compilar y correr el ejemplo
+
+3) Cambios para utilizar CUDA
+   a) Cambiar una función para que pueda ser llamada por la GPU, denominada "kernel" en CUDA.
+      Básicamente agregamos el modificador "__global__" a nuestra función para indicar que es una función
+      que debe correr en la GPU y que puede ser llamada por la CPU
+
+// Kernel function to add the elements of two arrays
+__global__
+void add(int n, float *sum, float *x, float *y) {
+  for (int i = 0; i < n; i++)
+    sum[i] = x[i] + y[i];
+}
+
+   El código que corre en la GPU a menudo se le conoce como "código de dispositivo",
+   mientras al que corre en la CPU se le denomina "código de anfitrión"
+
+   Es necesario que los métodos declarados global no devuelvan resultados, por lo que hay que
+   declararlos "void".  Si debe devolver un resultado hay que pasarlo como un parámetro de salida
+
+   b) Asignación de memoria en CUDA
+      Para realizar cálculos en la GPU, es necesario tener memoria accesible por la GPU.
+      La memoria unificada de CUDA (Unified Memory) permite obtener un espacio de memoria contiguo,
+      accesible por todas las GPUs y las CPUs del sistema.  Para obtener un espacio de memoria utilizamos
+      "cudaMallocManaged()" que facilita un puntero para acceder esa memoria desde el código del dispositivo
+      (GPUs) y del anfitrión (CPUs).  Para liberar esta memoria utilizamos "cudaFree()"
+
+// Allocate Unified Memory -- accessible from CPU or GPU
+float *x, *y, *sum;
+cudaMallocManaged(&x, N*sizeof(float));
+cudaMallocManaged(&y, N*sizeof(float));
+ 
+...
+ 
+// Free memory
+cudaFree(x);
+cudaFree(y);
+
+   c) Sintaxis para realizar el llamado en la GPU
+   Para correr el código en la GPU se utiliza el marcador "<<< >>>" en el llamado de la función:
+
+   add<<<1, 1>>>(N, sum, x, y );
+
+   Es necesario especificar a la CPU que debe esperar hasta que los cálculos solicitados en la GPU finalicen,
+   pues este tipo de llamados (kernel) no bloquean al hilo que realizó el llamado en la CPU.
+   "cudaDeviceSynchonize()" se utiliza para este fin y debe llamarse antes de realizar el chequeo en la CPU
+
+   d) El código completo está en "add.cu".  El compilar para CUDA debe estar disponible en la ruta de los 
+      archivos ejecutables de Linux, por lo que es necesario agregarlo a la variable de ambiente:
+
+      [miEquipo] $ export PATH=$PATH:/usr/local/cuda/bin
+
+      La instalación de CUDA está ubicada en el dirección "/usr/local/cuda"
+      El comando "export" es para que la variable sea reconocido en cualquier comando que ejecute esta terminal
+
+      Para compilar:
+
+         [miEquipo] $ nvcc add.cu -o add_cuda	# puede escribir "/usr/local/cuda/bin/nvcc" también
+
+      Para correr:
+
+         [miEquipo] $ ./add_cuda
+
+      Hemos de aclarar que este programa tiene condiciones de carrera, pues es posible que varios hilos puedan
+      acceder (escritura/lectura) a las mismas posiciones de memoria simultáneamente
+
+
+   e) Perfilación del programa (profiling)
+      Para determinar cuánto tiempo consume la GPU corriendo este programa debemos correr el programa "nsys":
+
+         [miEquipo] $ nsys profile -t cuda --stats=true ./add_cuda      
+
+      Este comando produce bastante información y puede ser difícil de encontrar la parte que nos interesa
+      Por esta razón, pueden bajar este complemento para hacer la lectura más sencilla: "nsys_easy"
+      Debe ser un "script", por lo que será necesario que le conceda derechos de ejecución a este archivo,
+      una vez que lo ha bajado:
+
+         [miEquipo] $ chmod a+x nsys_easy      
+
+      Luego puede correr este nuevo "comando":
+
+         [miEquipo] $ ./nsys_easy ./add_cuda
+   
+
+   f) Trabajando con hilos
+
+      Tenemos un programa que utiliza un hilo para realizar cálculos en la GPU, ¿Cómo procedemos para paralelizarlo?
+      La clase está en la especificación <<< 1, 1 >>>, denominada configuración para ejecución e indica a la GPU
+      cuántos hilos paralelos debe correr.  Hay dos parámetros, el primero especifica el número de bloques y
+      el segundo el número de bloques de hilos.  CUDA GPU utiliza bloques de hilos que son múltiplos de 32,
+      por lo que 256 hilos parece razonable para el problema que manejamos
+
+         add<<< 1, 256 >>>( N, x, y );
+
+      Si corremos el programa solo con ese cambio, vamos a correr el cálculo una vez por cada hilo; pero queremos
+      repartir las tareas entre los hilos participantes, para lograrlo, necesitamos modificar la función para
+      asignar algunos elementos a los trabajadores
+
+         threadX.x indica el valor del índice del hilo dentro de su bloque
+         blockDim.x indica el número de hilos por bloque
+
+      Vamos a asignar los elementos de los vectores de manera estática (índice del vector MOD cantidad de hilos),
+      la función quedaría de esta manera:
+
+__global__
+void add(int n, float *x, float *y)
+{
+  int index = threadIdx.x;	// Thread index in block
+  int stride = blockDim.x;	// Total threads
+  for (int i = index; i < n; i += stride)
+      y[i] = x[i] + y[i];	// Thread 0 process elements which index mod (block size) = 0
+}
+
+      Compilar y correr el ejemplo "add_block.cu":
+
+         [miEquipo] $ nvcc add_block.cu -o add_block
+         [miEquipo] $ ./nsys_easy ./add_block
+
+
+   g) Bloques de ejecución
+      Los CPU's de CUDA tienen muchos procesadores paralelos agrupados en "Streaming Multiprocessors" (SM)
+      Cada SM es capaz de correr múltiples bloques de hilos concurrentes, sin embargo, cada bloque de hilos
+      corre en un SM
+      Una tarjeta NVidia T4 basada en la tecnología Turing GPU, tiene 40 SM's y 2560 CUDA cores y cada SM
+      puede soportar 1024 hilos activos
+      Los bloques de hilos paralelos conforman un malla
+      Si tenemos N elementos que procesar y 256 hilos en cada bloque, basta con calcular el número de bloques
+      
+      Compilar y correr el ejemplo "add_grid.cu":
+
+         [miEquipo] $ nvcc add_grid.cu -o add_grid
+         [miEquipo] $ ./nsys_easy ./add_grid
+i
+      Es notable que no obtenemos una mejora sustancial al agregar más bloques, lo que significa que la parte
+      de cálculos no representaban el cuello de botella
+
+
+   h) Precarga de segmentos de memoria unificados
+      Con los datos desplegados por "nsys_easy" encontramos el cuello de botella del programa
+      Podemos observar que hay 48 llamados "host-to-device" (H2D) y 24 "device-to-host" (D2H), sin llamados
+      explícitos a "memcpy".  Ocurre que la memoria unificada de CUDA se maneja de manera virtual en la que
+      las páginas virtuales pueden estar residentes en cualquier dispositivo (GPU o CPU) del sistema, por
+      lo que las páginas son migradas por demanda
+
+      El programa comienza con todas las páginas en la CPU, luego corre código de la GPU, la que lee y escribe
+      en los arreglos de datos, para que la GPU obtenga los datos van a ocurrir "page-faults" y el hardware
+      migra las páginas necesarias a la GPU, provocando un cuello de botella
+
+      Esta migración es costosa, pues los "page-faults" ocurren de manera individual y los hilos de la GPU son
+      detenidos hasta completar la transferencia.  Como sabemos cuál es la memoria necesaria en la GPU,
+      podemos hacer una pre-carga de los datos en la GPU antes de que sean solicitados para los cálculos:
+
+         cudaMemPreFetchAsync( x, N * sizeof( float ), 0, 0 );
+         cudaMemPreFetchAsync( y, N * sizeof( float ), 0, 0 );
+
+      Realizar los cambios y probar
+
+   i) Construya un tabla con los resultados obtenidos
+
+
+
+Referencias
+   Material de clase en tema CUDA
+   https://developer.nvidia.com/blog/even-easier-introduction-cuda/
+
