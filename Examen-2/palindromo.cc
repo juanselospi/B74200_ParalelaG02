@@ -104,142 +104,30 @@ int main( int argumentos, char ** valores ) {
 }
 
 
+/*
 
+prueba de que los palindromos compilan y corren normal, pero no se si hay algo con la configuracion del .vscode o el path que no sirve
 
+ I  ~/Desktop/VSCode/Material adicional/Examen-2  make                                                                         ✔  16:34:37 
 
+g++    -c -o palindromo.o palindromo.cc
+g++    -c -o adn.o adn.cc
+g++    -c -o lcs.o lcs.cc
+g++ -g -fopenmp palindromo.o adn.o lcs.o -o palindromo.out
+mpic++ -g anilloFibonacci.cc -o anilloFibonacci.out
 
+ I  ~/Desktop/VSCode/Material adicional/Examen-2  ./palindromo.out                                                             ✔  16:40:02 
 
+ Cadena original: TCGGAATGAGTGATCATTGGCACAAACAGTATAATCACCCAGCCTTTCCC
+palindromo serial para cadenas de tamaño: 50 encontrada:
+TCGAATATATATAAGCT
+Longitud del palindromo serial: 18
+Tiempo version serial: 4.6613e-05 segundos
+palindromo paralelo para cadenas de tamaño: 50 encontrada:
+TCGAATATATATAAGCT
+Longitud del palindromo paralelo: 18
+Tiempo version paralela: 2.6363e-05 segundos
 
+ I  ~/Desktop/VSCode/Material adicional/Examen-2     
 
-
-
-
-
-
-
-
-
-
-
-
-// int main( int argumentos, char ** valores ) {
-// 	double start, finish, wusedSerial, wusedParallel;
-// 	string S1, S2;
-
-// 	int input1 = INPUT;
-// 	int input2 = INPUT;
-
-// 	// parametros ingresados por el usuario
-//     if( argumentos > 1 ) {
-
-//         input1 = atoi( valores[ 1 ] );
-
-// 		// si me dan un valor invalido irme al default
-// 		if(input1 < 1) {
-
-// 			input1 = INPUT;
-// 		}
-//     }
-
-//     if( argumentos > 2 ) {
-
-//         input2 = atoi(valores[2]);
-
-// 		if( input2 < 1 ) {
-
-// 			input2 = INPUT;
-// 		}
-//     }
-
-// 	// inicializacion de variables por mejorar
-// 	MPI_Init( &argumentos, &valores );
-
-// 	int rank, size;
-
-// 	MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-// 	MPI_Comm_size( MPI_COMM_WORLD, &size );
-
-// 	// solo el hilo de ranking 0 crea las cadenas y corre serialmente
-// 	if( rank == 0 ) {
-// 		// ADN * adn1 = new ADN( "ACCGGTCGAGTGCGCGGAAGCCGGCCGAA" );
-// 		// ADN * adn2 = new ADN( "GTCGTTCGGAATGGCCGTTGCTCTGTAA" );
-// 		// ADN * adn3 = new ADN( 1024 );
-// 		// std::string test = "ACCGGT";
-
-// 		//   printf( "Random sequence: %s\n", adn3->toString().c_str() );
-// 		//   adn1->printSeqs();
-
-// 		ADN * adn1 = new ADN( input1 );
-// 		ADN * adn2 = new ADN( input2 );
-
-// 		S1 = adn1->toString();
-// 		S2 = adn2->toString();
-
-// 		// para revisar que ambas cadenas aleatorias sean diferentes
-// 		// cout << "\nS1: " << S1 << endl;
-// 		// cout << "\nS2: " << S2 << endl;
-
-
-// 		// CORRIDA SERIAL
-// 		LCS solucionador;
-
-// 		start = MPI_Wtime();
-// 		string serial = solucionador.serialLCS( S1, S2 );
-// 		finish = MPI_Wtime();
-// 		wusedSerial = finish - start;
-
-// 		cout << "LCS serial para cadenas de tamaños: " << input1 << " y " << input2 << " encontrada:" << endl;
-// 		cout << serial << endl;
-// 		cout << "Longitud de la LCS serial: " << serial.size() << endl;
-
-// 		cout << "Tiempo version serial: " << wusedSerial << " segundos" << endl;
-
-// 		// delete adn3;
-// 		delete adn2;
-// 		delete adn1;
-// 	}
-
-// 	int n, m;
-
-// 	if( rank == 0 ) {
-// 		n = S1.size();
-// 		m = S2.size();
-// 	}
-
-// 	MPI_Bcast( &n, 1, MPI_INT, 0, MPI_COMM_WORLD );
-//     MPI_Bcast( &m, 1, MPI_INT, 0, MPI_COMM_WORLD );
-
-//     if( rank != 0 ){
-//         S1.resize( n );
-//         S2.resize( m );
-//     }
-
-// 	MPI_Bcast( &S1[ 0 ], n, MPI_CHAR, 0, MPI_COMM_WORLD );
-// 	MPI_Bcast( &S2[ 0 ], m, MPI_CHAR, 0, MPI_COMM_WORLD );
-
-// 	// VERSION PARALELA
-// 	LCS wavefront;
-
-// 	MPI_Barrier( MPI_COMM_WORLD );
-
-// 	start = MPI_Wtime();
-// 	string paralela = wavefront.paralelaLCS( S1, S2 );
-// 	finish = MPI_Wtime();
-// 	wusedParallel = finish - start;
-
-// 	if( rank == 0 ) {
-
-// 		cout << "\nLCS paralela por MPI para cadenas de tamaños: " << input1 << " y " << input2 << " encontrada:" << endl;
-// 		cout << paralela << endl;
-// 		cout << "Longitud de la LCS paralela: " << paralela.size() << endl;
-
-
-// 		cout << "Tiempo version paralela: " << wusedParallel << " segundos" << endl;
-
-// 		double speedUp = wusedSerial / wusedParallel;
-
-// 		cout << "\nSpeedUp: " << speedUp << "x" << endl;
-// 	}
-
-// 	MPI_Finalize();
-// }
+*/
