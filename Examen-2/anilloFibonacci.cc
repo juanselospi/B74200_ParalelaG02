@@ -169,3 +169,42 @@ int main(int argc, char** argv) {
     return 0;
 
 }
+
+/*
+    prueba de que fobonnaci corre bien
+
+     I  ~/Desktop/VSCode/Material adicional/Examen-2  make                                                                         ✔  16:34:16 
+g++    -c -o palindromo.o palindromo.cc
+g++    -c -o adn.o adn.cc
+g++    -c -o lcs.o lcs.cc
+g++ -g -fopenmp palindromo.o adn.o lcs.o -o palindromo.out
+mpic++ -g anilloFibonacci.cc -o anilloFibonacci.out
+ I  ~/Desktop/VSCode/Material adicional/Examen-2  mpirun -np 5 ./anilloFibonacci.out                                           ✔  16:34:17 
+Proceso 0 inicia fibonacci con valores: 
+0
+1
+5
+Proceso 0 realiza el primer fibonnaci con valores: 
+1
+5
+4
+Proceso 1 recibió valores: 
+1
+5
+4
+Proceso 2 recibió valores: 
+5
+4
+3
+Proceso 3 recibió valores: 
+4
+3
+2
+Proceso 4 recibió valores: 
+3
+2
+1
+¡Fibonnaci se detuvo en el proceso 4
+
+
+*/
